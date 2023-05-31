@@ -27,9 +27,10 @@ namespace ppUtils
             return (false || ... || std::is_same_v<T,Ts>);
         }
 
-        constexpr static auto type_on_pos(auto pos)
+        template <std::size_t pos>
+        consteval static auto type_on_pos()
         {
-            return ppUtils::nth_type_t<pos,Ts...>();
+            return ppUtils::nth_type_t<pos,Ts...>{};
         }
 
         consteval static auto adjusted_type()
@@ -48,5 +49,15 @@ namespace ppUtils
         }
 
     };
+
+
+    template< template <typename...> class newContainer ,typename Package>
+    struct replacer {};
+
+    template< template <typename...> class newContainer  ,typename... Ts>
+    struct replacer<newContainer,Package<Ts...>> { using type = newContainer<Ts...>;};
+
+    template< template <typename...> class newContainer  ,typename Package>
+    using replacer_t = typename replacer<newContainer,Package>::type;
 } // namespace typePack
 

@@ -1,5 +1,7 @@
 #include <ecs.hpp>
 #include <iostream>
+#include <typeinfo>
+
 
 int main()
 
@@ -49,7 +51,12 @@ int main()
 
     std::cout << "type on the position 4 on third package" << std::endl; 
 
-    std::cout << decltype(thirdPackage.type_on_pos(4)) << std::endl;
+    //THIS IS USED TO SHOWCASE IT WORKS, RESULT SHOULD BE COMPILER'S NAME FOR DOUBLE
+    std::cout << typeid(thirdPackage.type_on_pos<4>()).name() << std::endl;
+
+    using TupleofThirdPackage = ppUtils::replacer_t<std::tuple,decltype(thirdPackage)>;
+
+    TupleofThirdPackage firstTuple{};
 
 
     return 0;
