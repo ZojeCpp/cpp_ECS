@@ -46,7 +46,6 @@ namespace ppUtils
     consteval static auto adjust_type_size()
     {
         using retValue = typename if_t <typename if_t<short,int,Ts...>::type,long long,Ts...>::type;
-
         return retValue{};
     }
 
@@ -61,12 +60,23 @@ namespace ppUtils
     /// @tparam ...Ts 
     template<typename T, typename...Ts>
     constexpr auto pos_type_v = pos_type<T,Ts...>::value; 
+
     template<typename T, typename... Ts>
     struct pos_type<T,T,Ts...> : std::integral_constant<std::size_t,0>{}; 
 
     template<typename T,typename U, typename... Ts>
     struct pos_type<T,U,Ts...> : std::integral_constant<std::size_t,1 + pos_type_v<T,Ts...>>{};
 
+    template<size_t N, typename... Ts>
+    struct nth_type{static_assert(sizeof...(Ts)!=0);};
 
+    template<size_t N, typename... Ts>
+    using nth_type_t = typename nth_type<N,T,Ts...>::type;
 
-}
+    template<typename T, typename... Ts>
+    struct nth_type<0,T,Ts...> { using type = T;};
+
+    template<size_t N,typename T, typename... Ts>
+    struct nth_type<N,T,Ts...> { using type = nth_type<N-1,Ts...>;};
+
+} // namespace typePack 

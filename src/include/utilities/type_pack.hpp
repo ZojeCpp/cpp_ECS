@@ -3,6 +3,7 @@
 #include <include/utilities/paramter_pack_utils.hpp>
 
 
+//pp short for parameter pack
 namespace ppUtils
 {
     /// @brief Struct defined for the comfortable use of prameter packs
@@ -26,7 +27,11 @@ namespace ppUtils
             return (false || ... || std::is_same_v<T,Ts>);
         }
 
-        
+        constexpr static auto type_on_pos(auto pos)
+        {
+            return ppUtils::nth_type_t<pos,Ts...>();
+        }
+
         consteval static auto adjusted_type()
         {
            return ppUtils::adjust_type_size<Ts...>();
