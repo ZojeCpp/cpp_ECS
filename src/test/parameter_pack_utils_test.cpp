@@ -57,8 +57,18 @@ int main()
     //THIS IS USED TO SHOWCASE IT WORKS, RESULT SHOULD BE COMPILER'S NAME FOR DOUBLE
     std::cout << typeid(thirdPackage::type_on_pos<4>()).name() << std::endl;
 
-    std::cout << thirdPackage::mask<double>() << std::endl;
-    
+    std::cout << "mask of the type double" << std::endl; 
+
+    std::cout << size_t(thirdPackage::mask<double>()) << std::endl;
+
+    std::cout << "if given type is rvalue do nothing otherwise convert into const l_reference" << std::endl; 
+
+    std::cout << "compare int vs int&&" << std::endl; 
+
+    std::cout << std::is_same_v<zoje::ppUtils::r_reference_or_l_reference_t<int>,int&&> << std::endl;
+
+    std::cout << "compare int vs int&&" << std::endl; 
+
 
     using vectorOfThirdPackage = zoje::ppUtils::foreach_element_insert_t<std::vector,thirdPackage>;
 

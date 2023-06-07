@@ -99,5 +99,17 @@ namespace zoje
 
         //////////////////////////////////////////////////////
 
+        template <typename T>
+        struct value_or_reference{ using type = typename std::conditional<(sizeof(T)>sizeof(size_t)), T&,T>::type;};
+
+        template <typename T>
+        using value_or_reference_t = value_or_reference<T>::type;
+
+        template <typename T>
+        struct r_reference_or_l_reference{ using type = typename std::conditional<(std::is_rvalue_reference_v<T>),T&&,const T&>::type;};
+
+        template <typename T>
+        using r_reference_or_l_reference_t = r_reference_or_l_reference<T>::type;
+
     } // namespace typePack 
 }

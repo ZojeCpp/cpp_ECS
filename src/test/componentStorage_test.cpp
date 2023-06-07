@@ -28,7 +28,7 @@ int main()
 
     auto key = topDrawer.push_back(2.0);
 
-    std::cout << key.first << "," << key.second << std::endl;
+    std::cout << key.index << "," << key.generation << std::endl;
     
 
     return 0;

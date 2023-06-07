@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <numeric>
 #include <string>
+#include <include/utilities/paramter_pack_utils.hpp>
 
 
 namespace zoje
@@ -14,18 +15,18 @@ namespace zoje
     template<typename T>
     struct slotmap
     {
-        using key_type = std::pair<std::size_t,std::size_t>;
+        struct key_type {size_t index{}; size_t generation{}; };
 
         slotmap()=default;
 
         /// @brief erases the slot that corresponds to given key, if the key is invalid throws terminate
         /// @param key must be user-key, user-key corresponds to key for indirection layer
-        void erase(key_type key)
+        constexpr void erase(key_type key)
         {
             if(isValid(key))
             {
                 auto last = size()-1;
-                auto deletedSlotIdx = free(key.first);
+                auto deletedSlotIdx = free(key.index);
 
                 if(deletedSlotIdx==last)
                 {
@@ -34,7 +35,7 @@ namespace zoje
                 else
                 {
                     std::iter_swap<container_itr,container_itr>(container_itr{&data_[deletedSlotIdx]},container_itr{&data_[last]});
-                    index_[eraseInfo_[last]].first = deletedSlotIdx;
+                    index_[eraseInfo_[last]].index = deletedSlotIdx;
                     std::iter_swap<link_itr,link_itr>(link_itr{&eraseInfo_[deletedSlotIdx]},link_itr{&eraseInfo_[last]});
                 
                     eraseEnd(key);
@@ -46,24 +47,49 @@ namespace zoje
         /// @brief checks if the given key corresponds to a valid slot
         /// @param key 
         /// @return true if there's a slot for the given key, false otherwise
-        [[__nodiscard__]] bool isValid(key_type key) noexcept
+        [[__nodiscard__]] constexpr bool isValid(const key_type& key) noexcept
         {
-            if(key.first<index_.size() && index_[key.first].second == key.second) return true;
+            if(key.index<index_.size() && index_[key.index].generation == key.generation) return true;
             else return false;
+        }
+
+        constexpr T& operator[](const key_type& key) noexcept
+        {
+            assert(key.index < index_.capacity() && index_[key.index].index < data_.capacity );
+            return data_[index_[key.index].index];
+        }
+
+        //TODO
+        //LOOK UP HOW at() actually works
+        // constexpr T& at(const key_type& key) noexcept
+        // {
+        //     if(key.index < index_.capacity() && index_[key.index].index < data_.capacity )
+        //     {
+        //         return data_[index_[key.index].index];
+        //     }
+        // }
+
+        constexpr size_t capacity() noexcept { return data_.capacity();}
+
+        constexpr void clear()
+        {
+            data_.clear();
+            index_.clear();
+            eraseInfo_.clear();
         }
 
         /// @brief add an element to the slotmap,  
         /// @param data must be rvalue 
         /// @return returns user-key to acces slot, user-key corresponds to key for indirection layer
-        [[__nodiscard__]] key_type push_back(T&& data)
+        [[__nodiscard__]] constexpr key_type push_back(ppUtils::r_reference_or_l_reference_t<T> data)
         {
             auto slotPosition = nextfreeSlot_;
 
             key_type slotAssigned = alloc();
 
-            data_.emplace_back(std::move(data));
+            data_.emplace_back(std::forward<T>(data));
 
-            slotAssigned.first = slotPosition;
+            slotAssigned.index = slotPosition;
             return slotAssigned;
         }
 
@@ -71,11 +97,11 @@ namespace zoje
         /// @brief returns element that correspons to given key
         /// @param key 
         /// @return returns reference to the element
-        [[__nodiscard__]] T& getSlotData(key_type key)
+        [[__nodiscard__]] constexpr T& getSlotData(key_type key)
         {
             if(isValid(key))
             {
-                return data_[index_[key.first].first]; 
+                return data_[index_[key.index].index]; 
             }
             else std::terminate();
         }
@@ -83,11 +109,11 @@ namespace zoje
         /// @brief returns element that correspons to given key 
         /// @param key 
         /// @return returns read-only reference to the element
-        [[__nodiscard__]] const T& cgetSlotData(key_type key)
+        [[__nodiscard__]] constexpr const T& cgetSlotData(key_type key)
         {
             if(isValid(key))
             {
-                return data_[index_[key.first].first]; 
+                return data_[index_[key.index].index]; 
             }
             else std::terminate();
         }
@@ -123,7 +149,7 @@ namespace zoje
 
             eraseInfo_.emplace_back(size());
 
-            nextfreeSlot_ = slot2assign.first;
+            nextfreeSlot_ = slot2assign.index;
 
             slot2assign = key_type{size(),generation_};
 
@@ -136,12 +162,12 @@ namespace zoje
         /// @param key key of the element being erased
         void eraseEnd(key_type key)
         {
-            if(key.first==index_.size()-1 && nextfreeSlot_==key.first)
+            if(key.index==index_.size()-1 && nextfreeSlot_==key.index)
             {
-                auto lastSlot = index_.back().first;
+                auto lastSlot = index_.back().index;
                 auto newFreeSlot = lastSlot;
 
-                index_[lastSlot].first = nextfreeSlot_;
+                index_[lastSlot].index = nextfreeSlot_;
                 nextfreeSlot_ = newFreeSlot;
                 index_.pop_back();
             }
@@ -167,7 +193,7 @@ namespace zoje
         {   
             key_type& slot2Delete = index_[idxPos];
 
-            auto dataIdx = slot2Delete.first;
+            auto dataIdx = slot2Delete.index;
 
             slot2Delete = key_type{nextfreeSlot_,0};
 
@@ -206,24 +232,23 @@ namespace zoje
     template<typename T, auto Capacity = 10>
     struct static_slotmap
     {
-        //size_t Capacity=10;
-        using key_type = std::pair<std::size_t,std::size_t>;
+        struct key_type {size_t index{}; size_t generation{}; };
 
         static_slotmap()
         {
-            static auto counter{1};
-            std::generate(index_.begin(),index_.end(), [&](){ return key_type{counter++,0};});
+            static size_t counter{1};
+            std::generate(index_.begin(),index_.end(), [&](){ return key_type{counter++,size_t{0}};});
             std::iota(eraseInfo_.begin(),eraseInfo_.end(), 0);
         }
 
         /// @brief erases the slot that corresponds to given key, if the key is invalid throws terminate
         /// @param key must be user-key, user-key corresponds to key for indirection layer
-        void erase(key_type key)
+        constexpr void erase(key_type key)
         {
             if(isValid(key))
             {
                 auto last = size_-1;
-                auto deletedSlotIdx = free(key.first);
+                auto deletedSlotIdx = free(key.index);
 
                 if(deletedSlotIdx==last)
                 {
@@ -232,7 +257,7 @@ namespace zoje
                 else
                 {
                     data_[deletedSlotIdx] = data_[last];
-                    index_[eraseInfo_[last]].first = deletedSlotIdx;
+                    index_[eraseInfo_[last]].index = deletedSlotIdx;
                     eraseInfo_[deletedSlotIdx] = eraseInfo_[last];
                 }
                 size_--;
@@ -243,24 +268,38 @@ namespace zoje
         /// @brief checks if the given key corresponds to a valid slot
         /// @param key 
         /// @return true if there's a slot for the given key, false otherwise
-        [[__nodiscard__]] bool isValid(key_type key) noexcept
+        [[__nodiscard__]] constexpr bool isValid(const key_type& key) noexcept
         {
-            if(index_[key.first].second == key.second) return true;
+            if(index_[key.index].generation == key.generation) return true;
             else return false;
+        }
+
+        constexpr T& operator[](const key_type& key) noexcept
+        {
+            return data_[index_[key.index].index];
+        }
+
+        constexpr size_t capacity() noexcept { return Capacity ;}
+
+        constexpr void clear() noexcept 
+        {
+            static size_t counter{1};
+            std::generate(index_.begin(),index_.end(), [&](){ return key_type{counter++,size_t{0}};});
+            nextfreeSlot_ = 0;
         }
 
         /// @brief add an element to the slotmap,  
         /// @param data must be rvalue 
         /// @return returns user-key to acces slot, user-key corresponds to key for indirection layer
-        [[__nodiscard__]] key_type push_back(T&& data)
+        [[__nodiscard__]] constexpr key_type push_back(ppUtils::r_reference_or_l_reference_t<T>  data)
         {
             auto slotPosition = nextfreeSlot_;
 
             key_type slotAssigned = alloc();
 
-            data_[slotAssigned.first] = data;
+            data_[slotAssigned.index] = data;
 
-            slotAssigned.first = slotPosition;
+            slotAssigned.index = slotPosition;
             return slotAssigned;
         }
 
@@ -268,11 +307,11 @@ namespace zoje
         /// @brief returns element that correspons to given key
         /// @param key 
         /// @return returns reference to the element
-        [[__nodiscard__]] T& getSlotData(key_type key)
+        [[__nodiscard__]] constexpr T& getSlotData(key_type key)
         {
             if(isValid(key))
             {
-                return data_[index_[key.first].first]; 
+                return data_[index_[key.index].index]; 
             }
             else std::terminate();
         }
@@ -280,11 +319,11 @@ namespace zoje
         /// @brief returns element that correspons to given key 
         /// @param key 
         /// @return returns read-only reference to the element
-        [[__nodiscard__]] const T& cgetSlotData(key_type key)
+        [[__nodiscard__]] constexpr const T& cgetSlotData(key_type key)
         {
             if(isValid(key))
             {
-                return data_[index_[key.first].first]; 
+                return data_[index_[key.index].index]; 
             }
             else std::terminate();
         }
@@ -319,7 +358,7 @@ namespace zoje
 
             eraseInfo_[size_] = size_;
 
-            nextfreeSlot_ = slot2assign.first;
+            nextfreeSlot_ = slot2assign.index;
 
             slot2assign = key_type{size_,generation_};
 
@@ -336,7 +375,7 @@ namespace zoje
         {   
             key_type& slot2Delete = index_[idxPos];
 
-            auto dataIdx = slot2Delete.first;
+            auto dataIdx = slot2Delete.index;
 
             slot2Delete = key_type{nextfreeSlot_,0};
 
