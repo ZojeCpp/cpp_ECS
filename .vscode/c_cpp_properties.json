@@ -15,7 +15,10 @@
             "cppStandard": "gnu++23",
             "intelliSenseMode": "windows-gcc-x64",
             "compilerArgs": [
-
+                "-Wall",
+                "-Wconversion",
+                "-Wpedantic",
+                "-Wextra"
             ]
         }
     ],

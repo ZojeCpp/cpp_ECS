@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <cstdint>
 
 //pp short for parameter pack
 namespace ppUtils
@@ -44,14 +45,9 @@ namespace ppUtils
 
     /// @brief change return type based on parameter pack size, used when type size needs to be optimized
     /// @tparam ...T 
-    /// @return depends on prameter pack size return type can be: short, int, long long
+    /// @return depends on prameter pack size
     template<typename... Ts>
-    consteval static auto adjust_type_size()
-    {
-        using retValue = typename if_t <typename if_t<short,int,Ts...>::type,long long,Ts...>::type;
-        return retValue{};
-    }
-
+    struct smallest_mask_type_size_t{ using adjusted_type = typename if_t < typename if_t <typename if_t<uint8_t,uint16_t,Ts...>::type,uint32_t,Ts...>::type,uint64_t,Ts...>::type; };
     //////////////////////////////////////////////////////
 
 
