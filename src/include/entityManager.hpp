@@ -15,15 +15,14 @@ namespace zoje {
     //  EntityManager<Casas>    EMC;
     //  EntityManager<Aviones>  EMA;
     //Functions will work the same way but using different Objects
-    template <typename CMP_LIST, size_t Capacity = 10>
+    template <typename CMP_LIST,typename TAG_LIST, size_t Capacity = 10>
     struct EntityManager{
         
-        using cmp_storer_t = cmp::storer<CMP_LIST,Capacity>;
+        using cmp_storer_t = cmp::storer<CMP_LIST,TAG_LIST,Capacity>;
         template<typename T>
         using to_key_type    = typename zoje::static_slotmap<T,Capacity>::key_type;
 
         struct Entity{
-
 
             using keytype_list  = ppUtils::foreach_element_insert_t<to_key_type,CMP_LIST>;
             using key_storage_t = ppUtils::replacer_t<std::tuple, keytype_list>;
@@ -45,13 +44,27 @@ namespace zoje {
                 return std::get<to_key_type<CMP>>(cmp_keys);
             }
 
+            template <typename TAG>
+            bool hasTag() const noexcept
+            { return (tag_mask & cmp_storer_t::tag_info::template mask<TAG>()); }
+
+            template <typename TAG>
+            void addTag(){ tag_mask |= cmp_storer_t::tag_info::template mask<TAG>();}
+
+            template <typename... TAGS>
+            void addTags()
+            {
+               (addTag<TAGS>(),...);
+            }
+
             [[__nodiscard__]] bool isAlive() { return alive; }
 
          private:
+
             key_storage_t cmp_keys{};
             std::size_t id{nextID++};
             typename cmp_storer_t::cmp_info::mask_type_t cmp_mask{};
-            typename cmp_storer_t::cmp_info::mask_type_t tag_mask{};
+            typename cmp_storer_t::tag_info::mask_type_t tag_mask{};
             bool alive{true};
 
             inline static std::size_t nextID{1};

@@ -8,29 +8,14 @@ namespace zoje
 {
     namespace cmp
     {
-        template<typename CMP_LIST, size_t Capacity = 10>
+        template<typename CMP_LIST,typename TAG_LIST, size_t Capacity = 10>
         struct storer
         {
             using cmp_info = CMP_LIST;
+            using tag_info = TAG_LIST;
+
             template<typename T>
             using to_key_type    = typename zoje::static_slotmap<T,Capacity>::key_type;
-            //using tag_info = TAG_LIST;
-
-
-            // template <typename CMP>
-            // [[__nodiscard__]] static constexpr size_t getId() noexcept
-            // {
-            //     static_assert(CMP_LIST:: template contains<CMP>());
-            //     return CMP_LIST:: template position_of<CMP>();
-            // }
-
-            // template <typename CMP>
-            // [[__nodiscard__]] static constexpr CMP_LIST::mask_type getMask() noexcept
-            // {
-            //     static_assert(CMP_LIST:: template contains<CMP>());
-            //     return CMP_LIST::mask();
-            // }
-
 
             template<typename CMP>
             [[__nodiscard__]] constexpr auto& getDrawerOf() noexcept
