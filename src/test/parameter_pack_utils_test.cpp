@@ -1,7 +1,5 @@
 #include <ecs.hpp>
 #include <iostream>
-#include <vector>
-#include <typeinfo>
 
 
 int main()
@@ -12,12 +10,12 @@ int main()
     uint32_t c{};
     uint64_t d{};
 
-    using firstPackage = typename ppUtils::Package<uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,float,uint16_t,uint16_t,uint16_t,uint16_t>;
-    using secondPackage = typename  ppUtils::Package<uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t>;
-    using thirdPackage = typename  ppUtils::Package<uint16_t,uint8_t,uint32_t,char,double,float>;
+    using firstPackage = typename zoje::Package<uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,float,uint16_t,uint16_t,uint16_t,uint16_t>;
+    using secondPackage = typename  zoje::Package<uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint16_t>;
+    using thirdPackage = typename  zoje::Package<uint16_t,uint8_t,uint32_t,char,double,float>;
 
-    firstPackage::mask_type::type type{};
-    secondPackage::mask_type::type type2{}; 
+    firstPackage::mask_type_t type{};
+    secondPackage::mask_type_t type2{}; 
 
     std::cout << "byte size of integer types used" << std::endl; 
 
@@ -52,7 +50,7 @@ int main()
 
     std::cout << "float position on type 1 on second package" << std::endl; 
 
-    std::cout << unsigned int(firstPackage::position_of<float>()) << std::endl;
+    std::cout << size_t(firstPackage::position_of<float>()) << std::endl;
 
     std::cout << "type on the position 4 on third package" << std::endl; 
 
@@ -62,9 +60,9 @@ int main()
     std::cout << thirdPackage::mask<double>() << std::endl;
     
 
-    using vectorOfThirdPackage = ppUtils::foreach_element_insert_t<std::vector,thirdPackage>;
+    using vectorOfThirdPackage = zoje::ppUtils::foreach_element_insert_t<std::vector,thirdPackage>;
 
-    using TupleofvectorOfThirdPackage = ppUtils::replacer_t<std::tuple,vectorOfThirdPackage>;
+    using TupleofvectorOfThirdPackage = zoje::ppUtils::replacer_t<std::tuple,vectorOfThirdPackage>;
 
     TupleofvectorOfThirdPackage firstTuple{};
 

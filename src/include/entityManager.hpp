@@ -17,34 +17,36 @@ namespace zoje {
     template <typename CMP_LIST>
     struct EntityManager{
         
+        constexpr static std::size_t Capacity = 10;
+        using cmp_storer_t = cmp::storer<CMP_LIST,Capacity>;
+        using func_ptr = void (*)(Entity&);  //macro for function pointer type
+
+
         struct Entity{
-            constexpr static std::size_t Capacity = 10;
-            using cmp_storer_t = cmp::storer<CMP_LIST,Capcity>;
 
             template<typename T>
-            using to_key_type    = typename Slotmap<T,Capacity>::key_type;
-            using keytype_list  = MP::forall_insert_template_t<to_key_type,CMP_LIST>;
-            using key_storage_t = MP::replace_t<std::tuple, keytype_list>;
+            using to_key_type    = typename zoje::static_slotmap<T,Capacity>::key_type;
+            using keytype_list  = ppUtils::foreach_element_insert_t<to_key_type,CMP_LIST>;
+            using key_storage_t = ppUtils::replacer_t<std::tuple, keytype_list>;
 
             //static_assert(MP::is_same_v<key_storage_t,void>);
 
             template <typename CMP>
             //habria q hacer esto por metaprogramacion pa q si es grande lo pase por referencia
             void addComponent(to_key_type<CMP> key){
-               cmp_mask |= cmp_storer_t::cmpinfo::template mask<CMP>();
+               cmp_mask |= cmp_storer_t::cmp_info::template mask<CMP>();
                std::get< to_key_type<CMP> >(cmp_keys) = key;
             }
 
          private:
             key_storage_t cmp_keys{};
             std::size_t id{nextID++};
-            typename cmp_storer_t::cmpinfo::mask_type_t cmp_mask{};
-            typename cmp_storer_t::cmpinfo::mask_type_t tag_mask{};
+            typename cmp_storer_t::cmp_info::mask_type_t cmp_mask{};
+            typename cmp_storer_t::cmp_info::mask_type_t tag_mask{};
 
             inline static std::size_t nextID{1};
         };       
         
-        using func_ptr = void (*)(Entity&);  //macro for function pointer type
         
         EntityManager(std::size_t defaultsize = 100){
             //this is done so that the vector doesnt have to increase its size until we have 101 entities
@@ -64,8 +66,8 @@ namespace zoje {
         }
 
     private:
-        std::vector<EntityType> entities_{};
-        cmp_storer_t components_{};
+        std::vector<Entity> entities_{};
+        cmp_storer_t componentStorer_{};
 
 
         

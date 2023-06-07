@@ -7,19 +7,10 @@
 #include <string>
 
 
-    struct someData
-    {
-        std::string name{};
-        size_t number{};
-    };
-
-
 namespace zoje
 {
-    using T = someData;
-    /// @brief this implementation uses std::vector as the container for the slotmap,therfore allocated memory spacis dynamic
+    /// @brief this implementation uses std::vector as the container for the slotmap,therfore allocated memory space is dynamic
     /// @tparam T data type to be stored
-
     template<typename T>
     struct slotmap
     {

@@ -4,7 +4,7 @@
 
 
 //pp short for parameter pack
-namespace ppUtils
+namespace zoje
 {
     /// @brief Struct defined for the comfortable use of prameter packs
     /// @tparam ...Ts parameter pack contained by the TypePack
@@ -48,7 +48,7 @@ namespace ppUtils
         [[__nodiscard__]] consteval static uint8_t position_of()
         {
             static_assert(contains<T>());
-            return pos_type_v<T,Ts...>;
+            return ppUtils::pos_type_v<T,Ts...>;
         }
 
 
@@ -62,25 +62,28 @@ namespace ppUtils
 
     };
 
-    template< template <typename...> class newContainer ,typename Package>
-    struct replacer {};
+    namespace ppUtils
+    {
+        template< template <typename...> class newContainer ,typename Package>
+        struct replacer {};
 
-    template< template <typename...> class newContainer  ,typename... Ts>
-    struct replacer<newContainer,Package<Ts...>> { using type = newContainer<Ts...>;};
+        template< template <typename...> class newContainer  ,typename... Ts>
+        struct replacer<newContainer,Package<Ts...>> { using type = newContainer<Ts...>;};
 
-    template< template <typename...> class newContainer  ,typename Package>
-    using replacer_t = typename replacer<newContainer,Package>::type;
-
-
-    template<template <typename... > class NewContainer, typename  List >
-    struct foreach_element_insert{};
-
-    template<template <typename... > class NewContainer, typename... Ts >
-    struct foreach_element_insert<NewContainer,Package<Ts...>>{ using type = Package<NewContainer<Ts>...>;};
+        template< template <typename...> class newContainer  ,typename Package>
+        using replacer_t = typename replacer<newContainer,Package>::type;
 
 
-    template<template <typename... > class NewContainer, typename  List >
-    using foreach_element_insert_t = typename foreach_element_insert<NewContainer, List>::type;
+        template<template <typename... > class NewContainer, typename  List >
+        struct foreach_element_insert{};
+
+        template<template <typename... > class NewContainer, typename... Ts >
+        struct foreach_element_insert<NewContainer,Package<Ts...>>{ using type = Package<NewContainer<Ts>...>;};
+
+
+        template<template <typename... > class NewContainer, typename  List >
+        using foreach_element_insert_t = typename foreach_element_insert<NewContainer, List>::type;
+    }
 
 } // namespace typePack
 
