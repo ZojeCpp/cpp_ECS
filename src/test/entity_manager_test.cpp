@@ -1,7 +1,7 @@
 #include <ecs.hpp>
 #include <iostream>
 #include <vector>
-#include <typeinfo>
+#include <cassert>
 
 
 int main()
@@ -22,6 +22,14 @@ int main()
     EM.addComponent<double>(e,d);
 
     e.addTags<float,char,int>();
+
+    auto& e2 = EM.createEntity();
+
+    //auto& cmp = EM.getComponent<double>(e);
+
+    e.mark4destruction();
+
+    EM.update();
 
     return 0;
 }

@@ -31,7 +31,6 @@ namespace zoje
                 return drawer[key];
             }
 
-
             template<typename CMP>
             [[__nodiscard__]] constexpr auto insert(ppUtils::r_reference_or_l_reference_t<CMP> cmp) noexcept
             {
@@ -43,6 +42,14 @@ namespace zoje
                 return user_key;
             }
 
+            template<typename CMP>
+             constexpr void pop(auto key) noexcept
+            {
+                static_assert(CMP_LIST::  template contains<CMP>());
+
+                auto& drawer = getDrawerOf<CMP>();
+                drawer.erase(key);
+            }
 
             private:
 
