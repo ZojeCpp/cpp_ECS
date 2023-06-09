@@ -3,6 +3,11 @@
 #include <string>
 
 
+struct someData
+{
+    std::string name{};
+    int number{};
+};
 
 void listSlotmap(auto slotmap)
 {

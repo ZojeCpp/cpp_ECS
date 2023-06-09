@@ -9,9 +9,11 @@ int main()
 {
     using CMP_LIST = zoje::Package<float,char,int,double>;
     using TAG_LIST = zoje::Package<float,char,int,double>;
+    using UNIQ_CMP_LIST = zoje::Package<short>;
 
 
-    zoje::EntityManager<CMP_LIST,TAG_LIST> EM{};
+
+    zoje::EntityManager<CMP_LIST,TAG_LIST,UNIQ_CMP_LIST,100> EM{};
 
     auto& e = EM.createEntity();
 
@@ -25,11 +27,21 @@ int main()
 
     auto& e2 = EM.createEntity();
 
-    //auto& cmp = EM.getComponent<double>(e);
+    EM.addComponent<int>(e2,1);
 
     e.mark4destruction();
 
     EM.update();
+
+    //AFTER UPDATE  "e" and "e2" have been unvalidated
+
+    auto& uniq_cmp = EM.getUniqueComponent<short>();
+
+    std::cout << uniq_cmp << std::endl;
+
+    EM.initUniqueComponent<short>(10);
+
+    std::cout << uniq_cmp << std::endl;
 
     return 0;
 }

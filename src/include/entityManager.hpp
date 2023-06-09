@@ -15,10 +15,10 @@ namespace zoje {
     //  EntityManager<Casas>    EMC;
     //  EntityManager<Aviones>  EMA;
     //Functions will work the same way but using different Objects
-    template <typename CMP_LIST,typename TAG_LIST, size_t Capacity = 10>
+    template <typename CMP_LIST,typename TAG_LIST,typename UNIQUE_CMP_LIST,size_t Capacity = 10>
     struct EntityManager{
         
-        using cmp_storer_t = cmp::storer<CMP_LIST,TAG_LIST,Capacity>;
+        using cmp_storer_t = cmp::storer<CMP_LIST,TAG_LIST,UNIQUE_CMP_LIST,Capacity>;
         template<typename T>
         using to_key_type    = typename zoje::static_slotmap<T,Capacity>::key_type;
 
@@ -117,6 +117,7 @@ namespace zoje {
             entities_.reserve(defaultsize); //set capacity to 100
         }
 
+        /// @brief erases all dead entities and adds newly created entities to the living entities, references to entities obtained through "createEtntity" are invalidated
         constexpr void update() noexcept
         {
         	auto beginDeadEntities = std::stable_partition(entities_.begin(), entities_.end(), [](Entity& e){ if(e.isAlive()) return true; else return false;});
@@ -126,7 +127,59 @@ namespace zoje {
 				deleteEntityComponents(*it,CMP_LIST{});
 			}
 			entities_.erase(beginDeadEntities,entities_.end());
+
+            for(auto new_e : new_entities_)
+            {
+                entities_.emplace_back(new_e);
+            }
         }
+
+        /// @brief create a new empty entity  
+        /// @return a reference to the created entity, this reference shouldn't be saved as it can be invalidated at any point
+        [[__nodiscard__]]auto& createEntity() noexcept
+		{ return new_entities_.emplace_back(); }
+        
+        /// @brief call the given function for each entity currently alive
+        /// @param process it can bind to both lvalue and rvalue
+        void forall(auto&& process) noexcept
+		{
+            for(auto& e : entities_)
+            {
+                if(e.isAlive()) process(e);
+            }
+        }
+
+        template <typename CMP_PACKAGE, typename TAG_PACKAGE>
+        void foreach(auto&& process) noexcept 
+        {
+            foreach_matching_entity(process, CMP_PACKAGE{},TAG_PACKAGE{});
+        }
+
+        template <typename CMP>
+        void foreach_cmp(auto&& process) noexcept 
+		{
+            for(auto cmp : componentStorer_.template getDrawerOf<CMP>())
+            {
+                process(cmp);
+            }
+        }
+
+        /// @brief returns the unique component of the type given as template parameter, if the component hasn't been initialized it will have default values
+        /// @tparam UNIQ_CMP 
+        /// @param e 
+        /// @return returns reference to the requested component
+        template <typename UNIQ_CMP>
+        UNIQ_CMP& getUniqueComponent()
+        { return componentStorer_.template getUnique<UNIQ_CMP>(); }
+
+        /// @brief initialize unique component
+        /// @tparam UNIQ_CMP 
+        /// @tparam ...UNIQ_CMP_ARGS no need to explicitly declare
+        /// @param e 
+        /// @param ...cmp_args  parameters needed to initialize the component 
+        template <typename UNIQ_CMP, typename... UNIQ_CMP_ARGS>
+        constexpr void initUniqueComponent(UNIQ_CMP_ARGS&&... cmp_args) noexcept
+        { componentStorer_.template insertUnique<UNIQ_CMP>(std::forward<UNIQ_CMP_ARGS>(cmp_args)...); }
 
 		template <typename CMP>
 		constexpr void deleteEntityComponent(Entity& e) noexcept
@@ -137,6 +190,8 @@ namespace zoje {
 				componentStorer_.template pop<CMP>(key);
 			}
 		}
+
+
 
         /// @brief returns the component of the type given as template parameter, if the entity doesn't have the component it will throw an assert
         /// @tparam CMP 
@@ -176,35 +231,7 @@ namespace zoje {
             e.template addComponent<CMP>(key);
         }
 
-        /// @brief create a new empty entity  
-        /// @return a reference to the created entity, this reference shouldn't be saved as it can be invalidated at any point
-        [[__nodiscard__]]auto& createEntity() noexcept
-		{ return entities_.emplace_back(); }
-        
-        /// @brief call the given function for each entity currently alive
-        /// @param process it can bind to both lvalue and rvalue
-        void forall(auto&& process) noexcept
-		{
-            for(auto& e : entities_)
-            {
-                if(e.isAlive()) process(e);
-            }
-        }
 
-        template <typename CMP_PACKAGE, typename TAG_PACKAGE>
-        void foreach(auto&& process) noexcept 
-        {
-            foreach_matching_entity(process, CMP_PACKAGE{},TAG_PACKAGE{});
-        }
-
-        template <typename CMP>
-        void foreach_cmp(auto&& process) noexcept 
-		{
-            for(auto cmp : componentStorer_.template getDrawerOf<CMP>())
-            {
-                process(cmp);
-            }
-        }
     private:
 
 		template < typename ...CMPs>
@@ -227,9 +254,8 @@ namespace zoje {
         }
 
 
-
         std::vector<Entity> entities_{};
-        //std::vector<Entity> new_entities_{};
+        std::vector<Entity> new_entities_{};
 
         cmp_storer_t componentStorer_{};
 
