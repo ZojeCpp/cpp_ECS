@@ -26,7 +26,7 @@ Through the use of meta-programming tchniques applied to the use of systems the 
 
 ## Component
 
-...c++
+...cpp
 
 using component_list = zoje::package<int,float,int,char>
 using tag_list = zoje::package<int,float,int,char>
