@@ -1,8 +1,8 @@
 # Entity Component System in C++
 
-A small project I developed during the summer in this secondary account using the C++ 20 standard. 
+A small project I developed during the summer in this secondary account using the C++ 20 standard, made from scratch relying on meta-programming functions to deliver a product that I would have liked to see done. 
 
-Here you can find a complete Entity Component system framework, from where you can build your own project, since everything relies on templates for increased modularity. Besides that it also means that every part of your implementation will be don in compilation time which greatly reduces runtime bloat.
+Here you can find a complete Entity Component system framework from where you can build your own project, since everything relies on templates for increased modularity. Besides that it also means that everything will be done in compilation time which greatly reduces runtime bloat.
 
 # Component
 
@@ -25,6 +25,8 @@ In order to separate execution of the systems from the actual entities each syst
 # API
 General usage case
 
+
+##Define 
 ```cpp
 
 using component_list = zoje::package<physics_component,render_component>
@@ -47,8 +49,27 @@ entity_manager.addComponent<physics_component>(e,physics_component{});
 entity_manager.addComponent<render_component>(e,render_component{});
 
 entity_manager.addTag<visbible,can_collide,can_attack>
+```
+## Defining Systems
 
-##physics_system
-entity_manager.
+```cpp
+
+##SYSTEM FOR ALL ENTITIES WITH CORRESPONDING COMPONENT, USED TO REDUCE COMPUTATION COST
+entity_manager.foreach_cmp<physics_component>(PhysicsSystemCallable)
+entity_manager.foreach_cmp<render_component>(RenderSystemCallable)
+
+using enemy_components = zoje::package<physics_component,render_component>
+using enemy_tags = zoje::package<visible,can_collide,can_attack>
+
+entity_manager.foreach<enemy_components,enemy_tags>(EnemySystemCallable)
+
+entity_manager.update() ##THIS FUNCTION HANDLES THE DESTRUCTION AND CREATION OF ENTITIES
+```
+
+## Deleting entities
+
+```cpp
+##TO AVOID ISSUES THAT MY ARISE FROM PROBLEMS RELATED TO DELETING ENTITIES BEFORE NEEDED USER CAN ONLY MARK ENTITIES FOR DESTRUCTION 
+entity_manager.mark4destruction(e)
 
 ```
