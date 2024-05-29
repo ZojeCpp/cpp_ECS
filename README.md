@@ -8,11 +8,11 @@ Here you can find a complete Entity Component system framework, from where you c
 
 Thanks to the use of templates the components used by the user can be anything, from the standard types to your own. The components are also stored in a Slot Map as defined by Sean Middleditch in https://web.archive.org/web/20180121142549/http://seanmiddleditch.com/data-structures-for-game-developers-the-slot-map/ which improves caching of the required data and makes it so that insertion, removal, and access are all guaranteed to take O(1) time for the best, worst, and average case. 
 
-Finally components can be of 2 types:
+Finally components can be of 3 types:
 
-*Components: Data that will be used by systems.
-*Tags: Data that will be used in order to filter entities.
-
+* Components: Data that will be used by systems.
+* Tags: Data that will be used in order to filter entities.
+* Singleton Components: The data will be shared accross all entities.
 
 # Entities
 
@@ -20,18 +20,35 @@ The framework relies on an entity manager which will be used to connect the comp
 
 # System
 
-Through the use of meta-programming tchniques applied to the use of systems the user can define which kind of components will be used for each system in compile time.
+In order to separate execution of the systems from the actual entities each systema must be a lambda or callable that will recive as argument an entity. Whether the function will called for an arbitrary entity depends ont the filters defined by the user.
 
 # API
-
-## Component
+General usage case
 
 ```cpp
 
-using component_list = zoje::package<int,float,int,char>
-using tag_list = zoje::package<int,float,int,char>
+using component_list = zoje::package<physics_component,render_component>
+using tag_list = zoje::package<visible,can_collide,can_attack>
+using singleton_components = zoje::package<player_position>
+int storage_size = 10
 
-##Second parameter is the size of the Storage
-zoje::cmp::storer<component_list,tag_list>,10> component_storage = {}
+zoje::cmp::EntityManager<component_list,tag_list,singleton_components>,size> entity_manager = {}
 
-´´´
+##CREATE WALL
+auto& e = entity_manager.createEntity();
+entity_manager.addComponent<physics_component>(e,physics_component{});
+entity_manager.addComponent<render_component>(e,render_component{});
+
+entity_manager.addTag<visbible,can_collide>
+
+##CREATE_ENEMY
+auto& e = entity_manager.createEntity();
+entity_manager.addComponent<physics_component>(e,physics_component{});
+entity_manager.addComponent<render_component>(e,render_component{});
+
+entity_manager.addTag<visbible,can_collide,can_attack>
+
+##physics_system
+entity_manager.
+
+```
