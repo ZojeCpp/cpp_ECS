@@ -26,7 +26,7 @@ In order to separate execution of the systems from the actual entities each syst
 General usage case
 
 
-##Define 
+## Define project classes 
 ```cpp
 
 using component_list = zoje::package<physics_component,render_component>
