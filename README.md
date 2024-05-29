@@ -26,7 +26,7 @@ Through the use of meta-programming tchniques applied to the use of systems the 
 
 ## Component
 
-...cpp
+```cpp
 
 using component_list = zoje::package<int,float,int,char>
 using tag_list = zoje::package<int,float,int,char>
@@ -34,4 +34,4 @@ using tag_list = zoje::package<int,float,int,char>
 ##Second parameter is the size of the Storage
 zoje::cmp::storer<component_list,tag_list>,10> component_storage = {}
 
-....
+´´´
