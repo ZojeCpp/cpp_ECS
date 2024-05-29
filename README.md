@@ -6,11 +6,11 @@ Here you can find a complete Entity Component system framework, from where you c
 
 # Component
 
-Thanks to the use of templates the components used by the user can be anything, from the standard types to your own. The components are also stored in a Slot Map as defined by Sean Middleditch in https://web.archive.org/web/20180121142549/http://seanmiddleditch.com/data-structures-for-game-developers-the-slot-map/ which improves caching of the required data.
+Thanks to the use of templates the components used by the user can be anything, from the standard types to your own. The components are also stored in a Slot Map as defined by Sean Middleditch in https://web.archive.org/web/20180121142549/http://seanmiddleditch.com/data-structures-for-game-developers-the-slot-map/ which improves caching of the required data and makes it so that insertion, removal, and access are all guaranteed to take O(1) time for the best, worst, and average case. 
 
 # Entities
 
-The framework relies on an entity manager which will be used to connect the components to the systems. The manager will be in charge of the creation and destruction of entities. 
+The framework relies on an entity manager which will be used to connect the components to the systems. The manager will be in charge of the creation and destruction of entities. It can be instantiated by defining 2 template parameter packs, a Component list and a Tag list, both of these rely on meta-programming functions defined by the framework to improve the framework's capabilties.
 
 # System
 
@@ -18,3 +18,8 @@ Through the use of meta-programming tchniques applied to the use of systems the 
 
 # API
 
+## Component
+
+...c++
+
+....
